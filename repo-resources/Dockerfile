@@ -12,5 +12,5 @@ RUN DEBIAN_FRONTEND=noninteractive TZ=America/New_York apt-get -y install ${SVF_
 RUN npm i --silent svf-lib --prefix ${HOME}
 
 # Project Infrastructure
-RUN git clone https://github.com/davis-matthew/cs6340SVF.git
+RUN git clone https://github.com/davis-matthew/SVF-Project.git
 RUN mv cs6340SVF project

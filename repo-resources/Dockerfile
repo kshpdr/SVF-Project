@@ -13,4 +13,4 @@ RUN npm i --silent svf-lib --prefix ${HOME}
 
 # Project Infrastructure
 RUN git clone https://github.com/davis-matthew/SVF-Project.git
-RUN mv cs6340SVF project
+RUN mv SVF-Project project

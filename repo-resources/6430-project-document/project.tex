@@ -120,10 +120,18 @@ Once you have Docker installed on your machine, you can pull the provided Docker
     \item First you can pull the image from Docker Hub.\\\\
     \codeIn{docker pull mdavis438/svfproject:latest}\\
     \item Then you can start a Docker container from the provided Docker image using the following command.\\\\
-    \codeIn{docker run -it --name svfproject cs4240/project3:latest /bin/bash}\\\\
+    \codeIn{docker run -it --name svfproject mdavis438/svfproject:latest /bin/bash}\\\\
     If you want to come back later you can exit the bash session and start the stopped container again using the following command.\\\\
     \codeIn{docker start -ai svfproject}\\\\
 \end{enumerate}
+
+\textbf{Please keep in mind that docker containers will not save changes when closed! Either:
+\begin{enumerate}
+    \item Save the container to a docker image
+    \item Mount the project directory to your local computer \\(add \codeIn{-v host/directory/path:/home/project/src} to your docker run command)
+    \item Save the file copy to your local machine before closing the container
+\end{enumerate}
+}
 
 \subsubsection{VSCode (optional)}
 
@@ -145,13 +153,16 @@ This section provides a guide for if you want to use VScode dev container connec
 
     \item Attach to the docker container. 
     
+    Open the Remote Explorer view from the left panel. Select "Dev Containers" in the dropdown at the top of the sidebar. This should list all of the docker containers available.
+    
+    Choose your project container ('svfproject'). VSCode will take some time to setup the connection and then open the container environment.
+    
     \begin{figure*}[htpb]
         \centering
         \includegraphics[width=0.8\linewidth]{attach.png}
         \caption{Dev Containers in VSCode}
         \label{fig:install_docker}
     \end{figure*}
-    Open the Remote Explorer view from the left panel. Select "Dev Containers" in the dropdown at the top of the sidebar. This should list all of the docker containers available and currently running. Choose your project container ('svfproject'). VSCode will take some time to setup the connection and then open the container environment.
 
     More info on dev containers can be found \href{https://code.visualstudio.com/docs/devcontainers/containers}{here}. If you're curious you can follow this \href{https://code.visualstudio.com/docs/devcontainers/tutorial}{tutorial} but replace the example container instructions with our docker container.
     

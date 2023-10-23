@@ -21,10 +21,13 @@
 //
 //===-----------------------------------------------------------------------===//
 #include "SVF-LLVM/LLVMUtil.h"
+#include "SVF-LLVM/SVFIRBuilder.h"
+#include "WPA/Andersen.h"
 
 #include <iostream>
 #include <vector>
 #include <set>
+#include <string>
 
 using namespace llvm;
 using namespace std;
@@ -32,6 +35,15 @@ using namespace SVF;
 
 static llvm::cl::opt<std::string> InputFilename(cl::Positional,
         llvm::cl::desc("<input bitcode>"), llvm::cl::init("-"));
+
+std::vector<std::string> splitString(std::stringstream str, char delim){
+    std::vector<std::string> seglist;
+    std::string segment;
+    while(std::getline(str, segment, delim)){
+        seglist.push_back(segment);
+    }
+    return seglist;
+}
 
 int main(int argc, char ** argv) {
 
@@ -43,6 +55,22 @@ int main(int argc, char ** argv) {
                                 "Whole Program Points-to Analysis\n");
 
     SVFModule* svfModule = LLVMModuleSet::getLLVMModuleSet()->buildSVFModule(moduleNameVec);
+    string graphFileName = splitString((std::stringstream) moduleNameVec.back(), '/').back();
+
+    /// Build Program Assignment Graph (SVFIR)
+    SVFIRBuilder builder(svfModule);
+    SVFIR* svfir = builder.build();
+
+    /// This is necessary if we want to consider indirect function calls. It can be interesting to speak with a TA
+    /// To see if this is necessary. This can also plot the call graph which is more intuitive than the ICFG.
+    // PTACallGraph* callgraph = AndersenWaveDiff::createAndersenWaveDiff(svfir)->getPTACallGraph();
+    // builder.updateCallGraph(callgraph);
+    // callgraph->dump("/home/project/graphs/call_graph_" + graphFileName);
+
+    /// ICFG
+    ICFG* icfg = svfir->getICFG();
+    // icfg->updateCallGraph(callgraph); // This is necessary when considering indirect function calls.
+    icfg->dump("/home/project/graphs/icfg_" + graphFileName);
 
     return 0;
 }

@@ -9,3 +9,4 @@ and from LLVM IR (.ll) to the binary (.bc):
 ```
 llvm-as example.ll -o example.bc
 ```
+For debugging, you should move the .vscode folder form ~/project directory to the home directory of the container. This is because only the ~/project is mapped to a volume. Thus, each time that the container is restared files placed under the home directory will be lost.

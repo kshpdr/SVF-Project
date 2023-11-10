@@ -10,6 +10,10 @@ double subtract(double a, double b) {
     return a - b;
 }
 
+double mutiply(double a, double b) {
+    return a * b;
+}
+
 int main() {
     // Declare variables to store user input and the result
     double num1, num2, sum, difference;

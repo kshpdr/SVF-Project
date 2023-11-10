@@ -48,10 +48,8 @@ std::vector<std::string> splitString(std::stringstream str, char delim){
 /*!
  * An example to query/collect all successor nodes from a ICFGNode (iNode) along control-flow graph (ICFG)
  */
-void traverseOnICFG(ICFG* icfg, const Instruction* inst)
+void traverseOnICFG(ICFG* icfg, const SVFInstruction* svfinst)
 {
-    SVFInstruction* svfinst = LLVMModuleSet::getLLVMModuleSet()->getSVFInstruction(inst);
-
     ICFGNode* iNode = icfg->getICFGNode(svfinst);
     FIFOWorkList<const ICFGNode*> worklist;
     Set<const ICFGNode*> visited;
@@ -116,7 +114,7 @@ int main(int argc, char ** argv) {
     const SVFFunction* mainFunc = svfModule->getSVFFunction("main");
     // const BasicBlock* entryBB = &(mainFunc->getLLVMFuntcion()->getEntryBlock());
     const SVFInstruction* mainInst = mainFunc->getEntryBlock()->front();
-    // traverseOnICFG(icfg, mainInst);
+    traverseOnICFG(icfg, mainInst);
 
     return 0;
 }

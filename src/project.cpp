@@ -45,6 +45,36 @@ std::vector<std::string> splitString(std::stringstream str, char delim){
     return seglist;
 }
 
+/*!
+ * An example to query/collect all successor nodes from a ICFGNode (iNode) along control-flow graph (ICFG)
+ */
+void traverseOnICFG(ICFG* icfg, const Instruction* inst)
+{
+    SVFInstruction* svfinst = LLVMModuleSet::getLLVMModuleSet()->getSVFInstruction(inst);
+
+    ICFGNode* iNode = icfg->getICFGNode(svfinst);
+    FIFOWorkList<const ICFGNode*> worklist;
+    Set<const ICFGNode*> visited;
+    worklist.push(iNode);
+
+    /// Traverse along VFG
+    while (!worklist.empty())
+    {
+        const ICFGNode* iNode = worklist.pop();
+        for (ICFGNode::const_iterator it = iNode->OutEdgeBegin(), eit =
+                    iNode->OutEdgeEnd(); it != eit; ++it)
+        {
+            ICFGEdge* edge = *it;
+            ICFGNode* succNode = edge->getDstNode();
+            if (visited.find(succNode) == visited.end())
+            {
+                visited.insert(succNode);
+                worklist.push(succNode);
+            }
+        }
+    }
+}
+
 int main(int argc, char ** argv) {
 
     int arg_num = 0;
@@ -71,6 +101,22 @@ int main(int argc, char ** argv) {
     ICFG* icfg = svfir->getICFG();
     // icfg->updateCallGraph(callgraph); // This is necessary when considering indirect function calls.
     icfg->dump("/home/project/graphs/icfg_" + graphFileName);
+
+
+    Andersen* ander = AndersenWaveDiff::createAndersenWaveDiff(svfir);
+    PTACallGraph* callgraph = ander->getPTACallGraph();
+
+    VFG* vfg = new VFG(callgraph);
+
+    /// Sparse value-flow graph (SVFG)
+    SVFGBuilder svfBuilder;
+    SVFG* svfg = svfBuilder.buildFullSVFG(ander);
+    LLVMModuleSet::getLLVMModuleSet()->dumpModulesToFile(".svf.bc");
+
+    const SVFFunction* mainFunc = svfModule->getSVFFunction("main");
+    // const BasicBlock* entryBB = &(mainFunc->getLLVMFuntcion()->getEntryBlock());
+    const SVFInstruction* mainInst = mainFunc->getEntryBlock()->front();
+    // traverseOnICFG(icfg, mainInst);
 
     return 0;
 }

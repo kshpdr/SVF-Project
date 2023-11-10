@@ -56,6 +56,7 @@ void traverseOnICFG(PTACallGraph* callgraph, ICFG* icfg, const SVFInstruction* s
     Set<const ICFGNode*> visited;
     worklist.push(iNode);
     unordered_map<const ICFGNode*, const ICFGNode*> predecessorMap = {{iNode, nullptr}};
+    unordered_map<const ICFGNode*, const ICFGNode*> backedges;
     const ICFGNode* sinkPtr = nullptr;
 
     /// Traverse along VFG
@@ -85,26 +86,44 @@ void traverseOnICFG(PTACallGraph* callgraph, ICFG* icfg, const SVFInstruction* s
                 visited.insert(succNode);
                 worklist.push(succNode);
                 predecessorMap.insert({succNode, iNode});
+            }else{
+                backedges.insert({succNode, iNode});
             }
         }
     }
     vector<string> path;
     if(sinkPtr != nullptr){
+        cout << "Reachable" << endl;
         const ICFGNode* currNode = predecessorMap.at(sinkPtr);
         path.push_back("sink");
         while(currNode != nullptr){
             if (FunEntryICFGNode::classof(currNode)) {
                 const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(currNode);
                 const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
-                path.push_back(svfFunction->getName());
+                path.push_back(svfFunction->getName() + "-->");
+            }
+            if(backedges.find(currNode) != backedges.end()){
+                const ICFGNode* currNodeCycle = backedges.at(currNode);
+                path.push_back("]-->");
+                bool first = true;
+                while(currNodeCycle != currNode){
+                    if (FunEntryICFGNode::classof(currNodeCycle)) {
+                        const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(currNodeCycle);
+                        const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
+                        first ? path.push_back(svfFunction->getName()) : path.push_back(svfFunction->getName() + "-->");
+                        first = false;
+                    }
+                    currNodeCycle = predecessorMap.at(currNodeCycle);
+                }
+                path.push_back("Cycle[");
             }
             currNode = predecessorMap.at(currNode);
         }
-        for(int i = path.size()-1; i>0; i--){
-            cout << path[i] << " --> " << path[i-1];
+        for(int i = path.size()-1; i>=0; i--){
+            cout << path[i];
         }
     }else{
-        cout << "unrechable";
+        cout << "Unrechable";
     }
     cout << endl;
 }

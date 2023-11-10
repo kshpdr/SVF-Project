@@ -23,6 +23,7 @@
 #include "SVF-LLVM/LLVMUtil.h"
 #include "SVF-LLVM/SVFIRBuilder.h"
 #include "WPA/Andersen.h"
+#include "Graphs/PTACallGraph.h"
 
 #include <iostream>
 #include <vector>
@@ -43,6 +44,45 @@ std::vector<std::string> splitString(std::stringstream str, char delim){
         seglist.push_back(segment);
     }
     return seglist;
+}
+
+/*!
+ * An example to query/collect all successor nodes from a ICFGNode (iNode) along control-flow graph (ICFG)
+ */
+void traverseOnICFG(PTACallGraph* callgraph, ICFG* icfg, const SVFInstruction* svfinst)
+{
+    ICFGNode* iNode = icfg->getICFGNode(svfinst);
+    FIFOWorkList<const ICFGNode*> worklist;
+    Set<const ICFGNode*> visited;
+    worklist.push(iNode);
+
+    /// Traverse along VFG
+    while (!worklist.empty())
+    {
+        const ICFGNode* iNode = worklist.pop();
+
+        if (CallICFGNode::classof(iNode)) {
+            cout << "It's a Call node" << endl;
+            const SVF::CallICFGNode* callNodeConst = dyn_cast<const SVF::CallICFGNode>(iNode);
+            PTACallGraphNode* caller = callgraph->getCallGraphNode(callNodeConst->getCaller());
+            const SVF::SVFFunction* svfFunction = caller->getFunction();
+            cout << svfFunction->getName() << endl;
+        } else {
+            cout << "It's not a Call node" << endl;
+        }
+
+        for (ICFGNode::const_iterator it = iNode->OutEdgeBegin(), eit =
+                    iNode->OutEdgeEnd(); it != eit; ++it)
+        {
+            ICFGEdge* edge = *it;
+            ICFGNode* succNode = edge->getDstNode();
+            if (visited.find(succNode) == visited.end())
+            {
+                visited.insert(succNode);
+                worklist.push(succNode);
+            }
+        }
+    }
 }
 
 int main(int argc, char ** argv) {
@@ -71,6 +111,16 @@ int main(int argc, char ** argv) {
     ICFG* icfg = svfir->getICFG();
     // icfg->updateCallGraph(callgraph); // This is necessary when considering indirect function calls.
     icfg->dump("/home/project/graphs/icfg_" + graphFileName);
+
+    const SVFFunction* mainFunc = svfModule->getSVFFunction("main");
+    const SVFInstruction* mainInst = mainFunc->getEntryBlock()->front();
+
+    // Example of getting a function name of the call node
+    SVF::PTACallGraphNode* ptaCallNode = callgraph->getCallGraphNode(mainFunc);
+    const SVF::SVFFunction* svfFunction = ptaCallNode->getFunction();
+    cout << svfFunction->getName() << endl;
+
+    traverseOnICFG(callgraph, icfg, mainInst);
 
     return 0;
 }

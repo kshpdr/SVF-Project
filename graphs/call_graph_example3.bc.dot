@@ -1,15 +1,17 @@
 digraph "Call Graph" {
 	label="Call Graph";
 
-	Node0x556d77b29900 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 0 \{fun: malloc\}}"];
-	Node0x556d77ac2950 [shape=record,shape=box,label="{CallGraphNode ID: 1 \{fun: add\}}"];
-	Node0x556d77b26fa0 [shape=record,shape=box,label="{CallGraphNode ID: 2 \{fun: subtract\}}"];
-	Node0x556d77b270a0 [shape=record,shape=box,label="{CallGraphNode ID: 3 \{fun: mutiply\}}"];
-	Node0x556d77b271a0 [shape=record,shape=box,label="{CallGraphNode ID: 4 \{fun: main\}|{<s0>1|<s1>2|<s2>3|<s3>4}}"];
-	Node0x556d77b271a0:s0 -> Node0x556d77b273a0[color=black];
-	Node0x556d77b271a0:s1 -> Node0x556d77b273a0[color=black];
-	Node0x556d77b271a0:s2 -> Node0x556d77ac2950[color=black];
-	Node0x556d77b271a0:s3 -> Node0x556d77b26fa0[color=black];
-	Node0x556d77b272a0 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 5 \{fun: llvm.dbg.declare\}}"];
-	Node0x556d77b273a0 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 6 \{fun: __isoc99_scanf\}}"];
+	Node0x5555561aca10 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 0 \{fun: malloc\}}"];
+	Node0x555556211990 [shape=record,shape=box,label="{CallGraphNode ID: 1 \{fun: add\}}"];
+	Node0x5555561f78c0 [shape=record,shape=box,label="{CallGraphNode ID: 2 \{fun: sink\}|{<s0>1}}"];
+	Node0x5555561f78c0:s0 -> Node0x5555561f7cc0[color=black];
+	Node0x5555561f79c0 [shape=record,shape=box,label="{CallGraphNode ID: 3 \{fun: mutiply\}}"];
+	Node0x5555561f7ac0 [shape=record,shape=box,label="{CallGraphNode ID: 4 \{fun: main\}|{<s0>2|<s1>3|<s2>4|<s3>5}}"];
+	Node0x5555561f7ac0:s0 -> Node0x5555561f7dc0[color=black];
+	Node0x5555561f7ac0:s1 -> Node0x5555561f7dc0[color=black];
+	Node0x5555561f7ac0:s2 -> Node0x555556211990[color=black];
+	Node0x5555561f7ac0:s3 -> Node0x5555561f78c0[color=black];
+	Node0x5555561f7bc0 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 5 \{fun: llvm.dbg.declare\}}"];
+	Node0x5555561f7cc0 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 6 \{fun: printf\}}"];
+	Node0x5555561f7dc0 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 7 \{fun: __isoc99_scanf\}}"];
 }

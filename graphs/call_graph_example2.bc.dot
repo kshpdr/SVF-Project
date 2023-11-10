@@ -1,15 +1,15 @@
 digraph "Call Graph" {
 	label="Call Graph";
 
-	Node0x56449d212d10 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 0 \{fun: malloc\}}"];
-	Node0x56449d201e40 [shape=record,shape=box,label="{CallGraphNode ID: 1 \{fun: add\}}"];
-	Node0x56449d249620 [shape=record,shape=box,label="{CallGraphNode ID: 2 \{fun: subtract\}}"];
-	Node0x56449d249720 [shape=record,shape=box,label="{CallGraphNode ID: 3 \{fun: mutiply\}}"];
-	Node0x56449d260240 [shape=record,shape=box,label="{CallGraphNode ID: 4 \{fun: main\}|{<s0>1|<s1>2|<s2>3|<s3>4}}"];
-	Node0x56449d260240:s0 -> Node0x56449d260440[color=black];
-	Node0x56449d260240:s1 -> Node0x56449d260440[color=black];
-	Node0x56449d260240:s2 -> Node0x56449d201e40[color=black];
-	Node0x56449d260240:s3 -> Node0x56449d249620[color=black];
-	Node0x56449d260340 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 5 \{fun: llvm.dbg.declare\}}"];
-	Node0x56449d260440 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 6 \{fun: __isoc99_scanf\}}"];
+	Node0x556747a24620 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 0 \{fun: malloc\}}"];
+	Node0x556747a16eb0 [shape=record,shape=box,label="{CallGraphNode ID: 1 \{fun: add\}}"];
+	Node0x556747a5e740 [shape=record,shape=box,label="{CallGraphNode ID: 2 \{fun: subtract\}}"];
+	Node0x556747a75270 [shape=record,shape=box,label="{CallGraphNode ID: 3 \{fun: mutiply\}}"];
+	Node0x556747a75370 [shape=record,shape=box,label="{CallGraphNode ID: 4 \{fun: main\}|{<s0>1|<s1>2|<s2>3|<s3>4}}"];
+	Node0x556747a75370:s0 -> Node0x556747a75570[color=black];
+	Node0x556747a75370:s1 -> Node0x556747a75570[color=black];
+	Node0x556747a75370:s2 -> Node0x556747a16eb0[color=black];
+	Node0x556747a75370:s3 -> Node0x556747a5e740[color=black];
+	Node0x556747a75470 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 5 \{fun: llvm.dbg.declare\}}"];
+	Node0x556747a75570 [shape=record,shape=Mrecord,label="{CallGraphNode ID: 6 \{fun: __isoc99_scanf\}}"];
 }

@@ -18,7 +18,7 @@ Some To do's:
 - [ ] Develop a function that can find the `src()` node and cast it to the rigth type to start the DFS.
 - [ ] Develop a function that can find the `sink()` node and cast it to the rigth type.
 - [ ] Develop a function that can tell if a node is IntraICFGNode, CallICFGNode, FunEntryICFGNode or FunExitICFGNode. This will be usefull for the graph traversal.
-- [ ] Ask TAs if we also want to include undirect function call in our analysis.
+- [x] Ask TAs if we also want to include undirect function call in our analysis.
 - [ ] Ask TAs which kind of nodes we want to consider for our graph traversal, and which Node Ids should be in the output.
 - [ ] Develop the BFS algorithm for path reachanbility.
 - [ ] Develop an algorithm leveraging backtracking to find all paths from `src()` to `sink()`.

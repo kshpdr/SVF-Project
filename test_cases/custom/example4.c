@@ -10,21 +10,25 @@ void sink(int data) {
     printf("Sink received: %d\n", data);
 }
 
-double mutiply(double a, double b) {
+double multiply(double a, double b) {
     return a * b;
+}
+
+double difference(double a, double b) {
+    return a - b;
 }
 
 int src() {
     // Declare variables to store user input and the result
-    double num1, num2, sum, difference;
-    scanf("%lf", &num1);
-    scanf("%lf", &num2);
-    if(num1){
-        // Call the add function and store the result in the sum variable
+    double num1, num2, sum, diff, mult;
+    for(int i = 0; i<num1; i++)
+    {
         sum = add(num1, num2);
-    }else{
-        sink(0);
+        diff = difference(num1, num2);
+        mult = multiply(num1, num2);
     }
+
+    sink(0);
     return 0;
 }
 

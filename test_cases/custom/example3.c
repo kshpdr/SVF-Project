@@ -6,15 +6,15 @@ double add(double a, double b) {
 }
 
 // Function to subtract two numbers
-double subtract(double a, double b) {
-    return a - b;
+void sink(int data) {
+    printf("Sink received: %d\n", data);
 }
 
 double mutiply(double a, double b) {
     return a * b;
 }
 
-int main() {
+int src() {
     // Declare variables to store user input and the result
     double num1, num2, sum, difference;
     scanf("%lf", &num1);
@@ -24,7 +24,11 @@ int main() {
         sum = add(num1, num2);
     }
 
-    // Call the subtract function and store the result in the difference variable
-    difference = subtract(num1, num2);
+    sink(0);
+    return 0;
+}
+
+int main() {
+    src();
     return 0;
 }

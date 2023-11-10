@@ -63,9 +63,9 @@ int main(int argc, char ** argv) {
 
     /// This is necessary if we want to consider indirect function calls. It can be interesting to speak with a TA
     /// To see if this is necessary. This can also plot the call graph which is more intuitive than the ICFG.
-    // PTACallGraph* callgraph = AndersenWaveDiff::createAndersenWaveDiff(svfir)->getPTACallGraph();
-    // builder.updateCallGraph(callgraph);
-    // callgraph->dump("/home/project/graphs/call_graph_" + graphFileName);
+    PTACallGraph* callgraph = AndersenWaveDiff::createAndersenWaveDiff(svfir)->getPTACallGraph();
+    builder.updateCallGraph(callgraph);
+    callgraph->dump("/home/project/graphs/call_graph_" + graphFileName);
 
     /// ICFG
     ICFG* icfg = svfir->getICFG();

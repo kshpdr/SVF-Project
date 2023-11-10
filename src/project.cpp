@@ -55,20 +55,24 @@ void traverseOnICFG(PTACallGraph* callgraph, ICFG* icfg, const SVFInstruction* s
     FIFOWorkList<const ICFGNode*> worklist;
     Set<const ICFGNode*> visited;
     worklist.push(iNode);
+    unordered_map<const ICFGNode*, const ICFGNode*> predecessorMap = {{iNode, nullptr}};
+    const ICFGNode* sinkPtr = nullptr;
 
     /// Traverse along VFG
     while (!worklist.empty())
     {
         const ICFGNode* iNode = worklist.pop();
 
-        if (CallICFGNode::classof(iNode)) {
-            cout << "It's a Call node" << endl;
-            const SVF::CallICFGNode* callNodeConst = dyn_cast<const SVF::CallICFGNode>(iNode);
-            PTACallGraphNode* caller = callgraph->getCallGraphNode(callNodeConst->getCaller());
-            const SVF::SVFFunction* svfFunction = caller->getFunction();
-            cout << svfFunction->getName() << endl;
+        if (FunEntryICFGNode::classof(iNode)) {
+            // cout << "It's a Call node" << endl;
+            const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(iNode);
+            const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
+            if(svfFunction->getName() == "sink"){
+                sinkPtr = iNode;
+                // cout << svfFunction->getName() << " --> ";
+            }
         } else {
-            cout << "It's not a Call node" << endl;
+            // cout << "It's not a Call node" << endl;
         }
 
         for (ICFGNode::const_iterator it = iNode->OutEdgeBegin(), eit =
@@ -80,9 +84,29 @@ void traverseOnICFG(PTACallGraph* callgraph, ICFG* icfg, const SVFInstruction* s
             {
                 visited.insert(succNode);
                 worklist.push(succNode);
+                predecessorMap.insert({succNode, iNode});
             }
         }
     }
+    vector<string> path;
+    if(sinkPtr != nullptr){
+        const ICFGNode* currNode = predecessorMap.at(sinkPtr);
+        path.push_back("sink");
+        while(currNode != nullptr){
+            if (FunEntryICFGNode::classof(currNode)) {
+                const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(currNode);
+                const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
+                path.push_back(svfFunction->getName());
+            }
+            currNode = predecessorMap.at(currNode);
+        }
+        for(int i = path.size()-1; i>0; i--){
+            cout << path[i] << " --> " << path[i-1];
+        }
+    }else{
+        cout << "unrechable";
+    }
+    cout << endl;
 }
 
 int main(int argc, char ** argv) {

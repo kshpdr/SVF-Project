@@ -19,8 +19,9 @@ To do:
 - [x] Develop a function that can find the `sink()` node and cast it to the rigth type.
 - [x] Develop a function that can tell if a node is IntraICFGNode, CallICFGNode, FunEntryICFGNode or FunExitICFGNode. This will be usefull for the graph traversal.
 - [x] Ask TAs if we also want to include undirect function call in our analysis.
-- [x] Develop the BFS algorithm for path reachanbility.
-- [ ] Develop an algorithm leveraging backtracking to find all paths from `src()` to `sink()`. The current BFS one only finds ONE path.
+- [x] Develop the BFS algorithm for path reachanbility that handles cycles.
+- [x] Develop an algorithm leveraging backtracking to find all paths from `src()` to `sink()`. Currently this does not handle cycles.
+- [ ] Fill the `getCyclesWithDFS()` method to get cycles for th all paths version.
 - [ ] Ask TAs which kind of nodes we want to consider for our graph traversal, and which Node Ids should be in the output.
 - [ ] Create more tests to make sure that the cycles logic works well.
 - [ ] Start writing the report.

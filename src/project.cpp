@@ -34,6 +34,8 @@ using namespace llvm;
 using namespace std;
 using namespace SVF;
 
+bool reachedPrinted = false;
+
 static llvm::cl::opt<std::string> InputFilename(cl::Positional,
         llvm::cl::desc("<input bitcode>"), llvm::cl::init("-"));
 
@@ -46,86 +48,101 @@ std::vector<std::string> splitString(std::stringstream str, char delim){
     return seglist;
 }
 
+void printPath(vector<string> & path){
+    if(!reachedPrinted){
+        cout << "Reachable" << endl;
+        reachedPrinted = true;
+    }
+    for(string s : path){
+        cout << s;
+    }
+    cout << "sink" << endl;
+}
+
+void bfs(ICFGNode* iNode,
+unordered_set<const ICFGNode*> & visited,
+unordered_map<const ICFGNode*, const ICFGNode*> & predecessorMap,
+vector<string> & path,
+unordered_map<const ICFGNode*, string> & cycleSourceNodeToPathNameMap){
+    bool funNameExists = false;
+    if (FunEntryICFGNode::classof(iNode)) {
+        // cout << "It's a Call node" << endl;
+        string funName = dyn_cast<const SVF::FunEntryICFGNode>(iNode)->getFun()->getName();
+        if(funName == "sink"){
+            printPath(path);
+            return;
+        }else{
+            path.push_back(funName + "-->");
+            funNameExists = true;
+        }
+    } 
+    for (ICFGNode::const_iterator it = iNode->OutEdgeBegin(), eit =
+                iNode->OutEdgeEnd(); it != eit; ++it)
+    {
+        ICFGEdge* edge = *it;
+        ICFGNode* succNode = edge->getDstNode();
+        if (visited.find(succNode) == visited.end())
+        {
+            visited.insert(succNode);
+            predecessorMap.insert({succNode, iNode});
+            if (cycleSourceNodeToPathNameMap.find(succNode) != cycleSourceNodeToPathNameMap.end()){
+                path.push_back(cycleSourceNodeToPathNameMap.at(succNode));
+            }
+            bfs(succNode, visited, predecessorMap, path, cycleSourceNodeToPathNameMap);
+            visited.erase(succNode);
+            predecessorMap.erase(succNode);
+            if (funNameExists) {path.pop_back();}
+            if (cycleSourceNodeToPathNameMap.find(succNode) != cycleSourceNodeToPathNameMap.end()){path.pop_back();}
+        }else{
+            // getCycle(iNode)
+        }
+    }
+}
+
+string getCycle(const ICFGNode* currNode,
+const unordered_map<const ICFGNode*, const ICFGNode*> & predecessorMap,
+const unordered_map<const ICFGNode*, const ICFGNode*> & backedges){
+    const ICFGNode* currNodeCycle = backedges.at(currNode);
+    string path = "]-->";
+    bool first = true;
+    while(currNodeCycle != currNode){
+        if (FunEntryICFGNode::classof(currNodeCycle)) {
+            const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(currNodeCycle);
+            const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
+            path = (first ? svfFunction->getName() : svfFunction->getName() + "-->") + path;
+            first = false;
+        }
+        currNodeCycle = predecessorMap.at(currNodeCycle);
+    }
+    path = "Cycle[" + path;
+    return path;
+}
+
+void getCyclesWithDFS(ICFGNode* iNode,
+unordered_map<const ICFGNode*, string> & cycleSourceNodeToPathNameMap){
+    /*
+    * TODO: This should map a node that has a backedge with the cycle structure that maps a node that has a backedge
+    * with a string that represents this cycle. See commit 03938222129af8538c1dc558793ff8877c441636
+    * And how it was implemented.
+    * The idea is that when we encouter this node when doing the graph traversal to get all paths, we can easily 
+    * identify the cycle that needs to be added to the path.
+    * We want to make this before in one go so we can reuse our findings.
+    */
+    return;
+}
+
 /*!
  * An example to query/collect all successor nodes from a ICFGNode (iNode) along control-flow graph (ICFG)
  */
 void traverseOnICFG(PTACallGraph* callgraph, ICFG* icfg, const SVFInstruction* svfinst)
 {
     ICFGNode* iNode = icfg->getICFGNode(svfinst);
-    FIFOWorkList<const ICFGNode*> worklist;
-    Set<const ICFGNode*> visited;
-    worklist.push(iNode);
-    unordered_map<const ICFGNode*, const ICFGNode*> predecessorMap = {{iNode, nullptr}};
-    unordered_map<const ICFGNode*, const ICFGNode*> backedges;
-    const ICFGNode* sinkPtr = nullptr;
-
-    /// Traverse along VFG
-    while (!worklist.empty())
-    {
-        const ICFGNode* iNode = worklist.pop();
-
-        if (FunEntryICFGNode::classof(iNode)) {
-            // cout << "It's a Call node" << endl;
-            const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(iNode);
-            const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
-            if(svfFunction->getName() == "sink"){
-                sinkPtr = iNode;
-                // cout << svfFunction->getName() << " --> ";
-            }
-        } else {
-            // cout << "It's not a Call node" << endl;
-        }
-
-        for (ICFGNode::const_iterator it = iNode->OutEdgeBegin(), eit =
-                    iNode->OutEdgeEnd(); it != eit; ++it)
-        {
-            ICFGEdge* edge = *it;
-            ICFGNode* succNode = edge->getDstNode();
-            if (visited.find(succNode) == visited.end())
-            {
-                visited.insert(succNode);
-                worklist.push(succNode);
-                predecessorMap.insert({succNode, iNode});
-            }else{
-                backedges.insert({succNode, iNode});
-            }
-        }
-    }
+    unordered_set<const ICFGNode*> visited;
+    unordered_map<const ICFGNode*, const ICFGNode*> predecessorMap;
+    unordered_map<const ICFGNode*, string> cycleSourceNodeToPathNameMap;
     vector<string> path;
-    if(sinkPtr != nullptr){
-        cout << "Reachable" << endl;
-        const ICFGNode* currNode = predecessorMap.at(sinkPtr);
-        path.push_back("sink");
-        while(currNode != nullptr){
-            if (FunEntryICFGNode::classof(currNode)) {
-                const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(currNode);
-                const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
-                path.push_back(svfFunction->getName() + "-->");
-            }
-            if(backedges.find(currNode) != backedges.end()){
-                const ICFGNode* currNodeCycle = backedges.at(currNode);
-                path.push_back("]-->");
-                bool first = true;
-                while(currNodeCycle != currNode){
-                    if (FunEntryICFGNode::classof(currNodeCycle)) {
-                        const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(currNodeCycle);
-                        const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
-                        first ? path.push_back(svfFunction->getName()) : path.push_back(svfFunction->getName() + "-->");
-                        first = false;
-                    }
-                    currNodeCycle = predecessorMap.at(currNodeCycle);
-                }
-                path.push_back("Cycle[");
-            }
-            currNode = predecessorMap.at(currNode);
-        }
-        for(int i = path.size()-1; i>=0; i--){
-            cout << path[i];
-        }
-    }else{
-        cout << "Unrechable";
-    }
-    cout << endl;
+    getCyclesWithDFS(iNode, cycleSourceNodeToPathNameMap);
+    bfs(iNode, visited, predecessorMap, path, cycleSourceNodeToPathNameMap);
 }
 
 int main(int argc, char ** argv) {

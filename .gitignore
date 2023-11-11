@@ -6,3 +6,4 @@ src/Makefile
 cmake_install.cmake
 CMakeCache.txt
 cmake_install.cmake
+graphs/*

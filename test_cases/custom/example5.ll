@@ -1,10 +1,9 @@
-; ModuleID = 'example2.c'
-source_filename = "example2.c"
+; ModuleID = 'example5.c'
+source_filename = "example5.c"
 target datalayout = "e-m:e-p270:32:32-p271:32:32-p272:64:64-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
 @.str = private unnamed_addr constant [19 x i8] c"Sink received: %d\0A\00", align 1
-@.str.1 = private unnamed_addr constant [4 x i8] c"%lf\00", align 1
 
 ; Function Attrs: noinline nounwind optnone uwtable
 define dso_local double @add(double noundef %a, double noundef %b) #0 !dbg !8 {
@@ -38,7 +37,7 @@ entry:
 declare dso_local i32 @printf(i8* noundef, ...) #2
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local double @mutiply(double noundef %a, double noundef %b) #0 !dbg !30 {
+define dso_local double @multiply(double noundef %a, double noundef %b) #0 !dbg !30 {
 entry:
   %a.addr = alloca double, align 8
   %b.addr = alloca double, align 8
@@ -53,7 +52,7 @@ entry:
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local double @noop(double noundef %a, double noundef %b) #0 !dbg !39 {
+define dso_local double @difference(double noundef %a, double noundef %b) #0 !dbg !39 {
 entry:
   %a.addr = alloca double, align 8
   %b.addr = alloca double, align 8
@@ -61,53 +60,54 @@ entry:
   call void @llvm.dbg.declare(metadata double* %a.addr, metadata !40, metadata !DIExpression()), !dbg !41
   store double %b, double* %b.addr, align 8
   call void @llvm.dbg.declare(metadata double* %b.addr, metadata !42, metadata !DIExpression()), !dbg !43
-  ret double 0.000000e+00, !dbg !44
+  %0 = load double, double* %a.addr, align 8, !dbg !44
+  %1 = load double, double* %b.addr, align 8, !dbg !45
+  %sub = fsub double %0, %1, !dbg !46
+  ret double %sub, !dbg !47
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @src() #0 !dbg !45 {
+define dso_local i32 @src() #0 !dbg !48 {
 entry:
   %num1 = alloca double, align 8
   %num2 = alloca double, align 8
   %sum = alloca double, align 8
-  %difference = alloca double, align 8
-  call void @llvm.dbg.declare(metadata double* %num1, metadata !48, metadata !DIExpression()), !dbg !49
-  call void @llvm.dbg.declare(metadata double* %num2, metadata !50, metadata !DIExpression()), !dbg !51
-  call void @llvm.dbg.declare(metadata double* %sum, metadata !52, metadata !DIExpression()), !dbg !53
-  call void @llvm.dbg.declare(metadata double* %difference, metadata !54, metadata !DIExpression()), !dbg !55
-  %call = call i32 (i8*, ...) @__isoc99_scanf(i8* noundef getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i64 0, i64 0), double* noundef %num1), !dbg !56
-  %call1 = call i32 (i8*, ...) @__isoc99_scanf(i8* noundef getelementptr inbounds ([4 x i8], [4 x i8]* @.str.1, i64 0, i64 0), double* noundef %num2), !dbg !57
-  %0 = load double, double* %num1, align 8, !dbg !58
-  %1 = load double, double* %num2, align 8, !dbg !59
-  %call2 = call double @noop(double noundef %0, double noundef %1), !dbg !60
-  %2 = load double, double* %num1, align 8, !dbg !61
-  %tobool = fcmp une double %2, 0.000000e+00, !dbg !61
+  %diff = alloca double, align 8
+  %mult = alloca double, align 8
+  call void @llvm.dbg.declare(metadata double* %num1, metadata !51, metadata !DIExpression()), !dbg !52
+  call void @llvm.dbg.declare(metadata double* %num2, metadata !53, metadata !DIExpression()), !dbg !54
+  call void @llvm.dbg.declare(metadata double* %sum, metadata !55, metadata !DIExpression()), !dbg !56
+  call void @llvm.dbg.declare(metadata double* %diff, metadata !57, metadata !DIExpression()), !dbg !58
+  call void @llvm.dbg.declare(metadata double* %mult, metadata !59, metadata !DIExpression()), !dbg !60
+  %0 = load double, double* %num1, align 8, !dbg !61
+  %tobool = fcmp une double %0, 0.000000e+00, !dbg !61
   br i1 %tobool, label %if.then, label %if.else, !dbg !63
 
 if.then:                                          ; preds = %entry
-  %3 = load double, double* %num1, align 8, !dbg !64
-  %4 = load double, double* %num2, align 8, !dbg !66
-  %call3 = call double @add(double noundef %3, double noundef %4), !dbg !67
-  store double %call3, double* %sum, align 8, !dbg !68
+  %1 = load double, double* %num1, align 8, !dbg !64
+  %2 = load double, double* %num2, align 8, !dbg !66
+  %call = call double @add(double noundef %1, double noundef %2), !dbg !67
+  call void @sink(i32 noundef 0), !dbg !68
   br label %if.end, !dbg !69
 
 if.else:                                          ; preds = %entry
-  call void @sink(i32 noundef 0), !dbg !70
+  %3 = load double, double* %num1, align 8, !dbg !70
+  %4 = load double, double* %num2, align 8, !dbg !72
+  %call1 = call double @multiply(double noundef %3, double noundef %4), !dbg !73
+  call void @sink(i32 noundef 0), !dbg !74
   br label %if.end
 
 if.end:                                           ; preds = %if.else, %if.then
-  ret i32 0, !dbg !72
+  ret i32 0, !dbg !75
 }
 
-declare dso_local i32 @__isoc99_scanf(i8* noundef, ...) #2
-
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @main() #0 !dbg !73 {
+define dso_local i32 @main() #0 !dbg !76 {
 entry:
   %retval = alloca i32, align 4
   store i32 0, i32* %retval, align 4
-  %call = call i32 @src(), !dbg !74
-  ret i32 0, !dbg !75
+  %call = call i32 @src(), !dbg !77
+  ret i32 0, !dbg !78
 }
 
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -119,7 +119,7 @@ attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !llvm.ident = !{!7}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "clang version 14.0.0", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "example2.c", directory: "/home/project/test_cases/custom", checksumkind: CSK_MD5, checksum: "1fb5a0047e26d4c0a2ac10315f7203a5")
+!1 = !DIFile(filename: "example5.c", directory: "/home/project/test_cases/custom", checksumkind: CSK_MD5, checksum: "943406ee2d03236162494e02f0457d8e")
 !2 = !{i32 7, !"Dwarf Version", i32 5}
 !3 = !{i32 2, !"Debug Info Version", i32 3}
 !4 = !{i32 1, !"wchar_size", i32 4}
@@ -148,49 +148,52 @@ attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !27 = !DILocation(line: 10, column: 35, scope: !21)
 !28 = !DILocation(line: 10, column: 5, scope: !21)
 !29 = !DILocation(line: 11, column: 1, scope: !21)
-!30 = distinct !DISubprogram(name: "mutiply", scope: !1, file: !1, line: 13, type: !9, scopeLine: 13, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
+!30 = distinct !DISubprogram(name: "multiply", scope: !1, file: !1, line: 13, type: !9, scopeLine: 13, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
 !31 = !DILocalVariable(name: "a", arg: 1, scope: !30, file: !1, line: 13, type: !11)
-!32 = !DILocation(line: 13, column: 23, scope: !30)
+!32 = !DILocation(line: 13, column: 24, scope: !30)
 !33 = !DILocalVariable(name: "b", arg: 2, scope: !30, file: !1, line: 13, type: !11)
-!34 = !DILocation(line: 13, column: 33, scope: !30)
+!34 = !DILocation(line: 13, column: 34, scope: !30)
 !35 = !DILocation(line: 14, column: 12, scope: !30)
 !36 = !DILocation(line: 14, column: 16, scope: !30)
 !37 = !DILocation(line: 14, column: 14, scope: !30)
 !38 = !DILocation(line: 14, column: 5, scope: !30)
-!39 = distinct !DISubprogram(name: "noop", scope: !1, file: !1, line: 17, type: !9, scopeLine: 17, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
+!39 = distinct !DISubprogram(name: "difference", scope: !1, file: !1, line: 17, type: !9, scopeLine: 17, flags: DIFlagPrototyped, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
 !40 = !DILocalVariable(name: "a", arg: 1, scope: !39, file: !1, line: 17, type: !11)
-!41 = !DILocation(line: 17, column: 20, scope: !39)
+!41 = !DILocation(line: 17, column: 26, scope: !39)
 !42 = !DILocalVariable(name: "b", arg: 2, scope: !39, file: !1, line: 17, type: !11)
-!43 = !DILocation(line: 17, column: 30, scope: !39)
-!44 = !DILocation(line: 18, column: 5, scope: !39)
-!45 = distinct !DISubprogram(name: "src", scope: !1, file: !1, line: 21, type: !46, scopeLine: 21, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
-!46 = !DISubroutineType(types: !47)
-!47 = !{!24}
-!48 = !DILocalVariable(name: "num1", scope: !45, file: !1, line: 23, type: !11)
-!49 = !DILocation(line: 23, column: 12, scope: !45)
-!50 = !DILocalVariable(name: "num2", scope: !45, file: !1, line: 23, type: !11)
-!51 = !DILocation(line: 23, column: 18, scope: !45)
-!52 = !DILocalVariable(name: "sum", scope: !45, file: !1, line: 23, type: !11)
-!53 = !DILocation(line: 23, column: 24, scope: !45)
-!54 = !DILocalVariable(name: "difference", scope: !45, file: !1, line: 23, type: !11)
-!55 = !DILocation(line: 23, column: 29, scope: !45)
-!56 = !DILocation(line: 24, column: 5, scope: !45)
-!57 = !DILocation(line: 25, column: 5, scope: !45)
-!58 = !DILocation(line: 26, column: 10, scope: !45)
-!59 = !DILocation(line: 26, column: 16, scope: !45)
-!60 = !DILocation(line: 26, column: 5, scope: !45)
-!61 = !DILocation(line: 27, column: 8, scope: !62)
-!62 = distinct !DILexicalBlock(scope: !45, file: !1, line: 27, column: 8)
-!63 = !DILocation(line: 27, column: 8, scope: !45)
-!64 = !DILocation(line: 29, column: 19, scope: !65)
-!65 = distinct !DILexicalBlock(scope: !62, file: !1, line: 27, column: 13)
-!66 = !DILocation(line: 29, column: 25, scope: !65)
-!67 = !DILocation(line: 29, column: 15, scope: !65)
-!68 = !DILocation(line: 29, column: 13, scope: !65)
-!69 = !DILocation(line: 30, column: 5, scope: !65)
-!70 = !DILocation(line: 31, column: 9, scope: !71)
-!71 = distinct !DILexicalBlock(scope: !62, file: !1, line: 30, column: 10)
-!72 = !DILocation(line: 33, column: 5, scope: !45)
-!73 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 36, type: !46, scopeLine: 36, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
-!74 = !DILocation(line: 37, column: 5, scope: !73)
-!75 = !DILocation(line: 38, column: 5, scope: !73)
+!43 = !DILocation(line: 17, column: 36, scope: !39)
+!44 = !DILocation(line: 18, column: 12, scope: !39)
+!45 = !DILocation(line: 18, column: 16, scope: !39)
+!46 = !DILocation(line: 18, column: 14, scope: !39)
+!47 = !DILocation(line: 18, column: 5, scope: !39)
+!48 = distinct !DISubprogram(name: "src", scope: !1, file: !1, line: 21, type: !49, scopeLine: 21, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
+!49 = !DISubroutineType(types: !50)
+!50 = !{!24}
+!51 = !DILocalVariable(name: "num1", scope: !48, file: !1, line: 23, type: !11)
+!52 = !DILocation(line: 23, column: 12, scope: !48)
+!53 = !DILocalVariable(name: "num2", scope: !48, file: !1, line: 23, type: !11)
+!54 = !DILocation(line: 23, column: 18, scope: !48)
+!55 = !DILocalVariable(name: "sum", scope: !48, file: !1, line: 23, type: !11)
+!56 = !DILocation(line: 23, column: 24, scope: !48)
+!57 = !DILocalVariable(name: "diff", scope: !48, file: !1, line: 23, type: !11)
+!58 = !DILocation(line: 23, column: 29, scope: !48)
+!59 = !DILocalVariable(name: "mult", scope: !48, file: !1, line: 23, type: !11)
+!60 = !DILocation(line: 23, column: 35, scope: !48)
+!61 = !DILocation(line: 24, column: 8, scope: !62)
+!62 = distinct !DILexicalBlock(scope: !48, file: !1, line: 24, column: 8)
+!63 = !DILocation(line: 24, column: 8, scope: !48)
+!64 = !DILocation(line: 25, column: 13, scope: !65)
+!65 = distinct !DILexicalBlock(scope: !62, file: !1, line: 24, column: 13)
+!66 = !DILocation(line: 25, column: 19, scope: !65)
+!67 = !DILocation(line: 25, column: 9, scope: !65)
+!68 = !DILocation(line: 26, column: 9, scope: !65)
+!69 = !DILocation(line: 27, column: 5, scope: !65)
+!70 = !DILocation(line: 28, column: 18, scope: !71)
+!71 = distinct !DILexicalBlock(scope: !62, file: !1, line: 27, column: 10)
+!72 = !DILocation(line: 28, column: 24, scope: !71)
+!73 = !DILocation(line: 28, column: 9, scope: !71)
+!74 = !DILocation(line: 29, column: 9, scope: !71)
+!75 = !DILocation(line: 31, column: 5, scope: !48)
+!76 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 34, type: !49, scopeLine: 34, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
+!77 = !DILocation(line: 35, column: 5, scope: !76)
+!78 = !DILocation(line: 36, column: 5, scope: !76)

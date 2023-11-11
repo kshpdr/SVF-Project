@@ -10,24 +10,22 @@ void sink(int data) {
     printf("Sink received: %d\n", data);
 }
 
-double mutiply(double a, double b) {
+double multiply(double a, double b) {
     return a * b;
 }
 
-double noop(double a, double b){
-    return 0;
+double difference(double a, double b) {
+    return a - b;
 }
 
 int src() {
     // Declare variables to store user input and the result
-    double num1, num2, sum, difference;
-    scanf("%lf", &num1);
-    scanf("%lf", &num2);
-    noop(num1, num2);
+    double num1, num2, sum, diff, mult;
     if(num1){
-        // Call the add function and store the result in the sum variable
-        sum = add(num1, num2);
+        add(num1, num2);
+        sink(0);
     }else{
+        multiply(num1, num2);
         sink(0);
     }
     return 0;

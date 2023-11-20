@@ -62,7 +62,6 @@ void printPath(vector<string> & path){
 void bfs(bool srcFound,
 ICFGNode* iNode,
 unordered_set<const ICFGNode*> & visited,
-unordered_map<const ICFGNode*, const ICFGNode*> & predecessorMap,
 vector<string> & path,
 unordered_map<const ICFGNode*, string> & cycleSourceNodeToPathNameMap){
     if (FunEntryICFGNode::classof(iNode)) {
@@ -91,10 +90,17 @@ unordered_map<const ICFGNode*, string> & cycleSourceNodeToPathNameMap){
                 }
             }
             if(srcFound){
+                if(cycleSourceNodeToPathNameMap.count(succNode) != 0){
+                    path.push_back(cycleSourceNodeToPathNameMap.at(succNode));
+                    path.push_back("-->");
+                    bfs(srcFound, succNode, visited, path, cycleSourceNodeToPathNameMap);
+                    path.pop_back();
+                    path.pop_back();
+                }
                 path.push_back(std::to_string(succNode->getId()));
                 path.push_back("-->");
             }
-            bfs(srcFound, succNode, visited, predecessorMap, path, cycleSourceNodeToPathNameMap);
+            bfs(srcFound, succNode, visited, path, cycleSourceNodeToPathNameMap);
             if(visited.find(succNode) != visited.end()) {visited.erase(succNode);}
             if(srcFound){
                 path.pop_back();
@@ -111,49 +117,56 @@ unordered_map<const ICFGNode*, string> & cycleSourceNodeToPathNameMap){
 }
 
 string getCycle(const ICFGNode* currNode,
-const unordered_map<const ICFGNode*, const ICFGNode*> & predecessorMap,
-const unordered_map<const ICFGNode*, const ICFGNode*> & backedges){
-    const ICFGNode* currNodeCycle = backedges.at(currNode);
-    string path = "]-->";
-    bool first = true;
+const ICFGNode* currNodeCycle,
+const unordered_map<const ICFGNode*, const ICFGNode*> & predecessorMap){
+    string firstId = std::to_string(currNodeCycle->getId());
+    string path = "Cycle[" + firstId + "-->";
+    currNodeCycle = predecessorMap.at(currNodeCycle);
     while(currNodeCycle != currNode){
-        if (FunEntryICFGNode::classof(currNodeCycle)) {
-            const SVF::FunEntryICFGNode* callNodeConst = dyn_cast<const SVF::FunEntryICFGNode>(currNodeCycle);
-            const SVF::SVFFunction* svfFunction = callNodeConst->getFun();
-            path = (first ? svfFunction->getName() : svfFunction->getName() + "-->") + path;
-            first = false;
-        }
+        path += std::to_string(currNodeCycle->getId()) + "-->";
         currNodeCycle = predecessorMap.at(currNodeCycle);
     }
-    path = "Cycle[" + path;
+    path += std::to_string(currNodeCycle->getId())+ "-->" + firstId + "]";
     return path;
 }
 
 void getCyclesWithDFS(ICFGNode* iNode,
+unordered_set<const ICFGNode*> & visited,
+unordered_set<const ICFGNode*> & visitedInCurrentPath,
+unordered_map<const ICFGNode*, const ICFGNode*> predecessorMap,
 unordered_map<const ICFGNode*, string> & cycleSourceNodeToPathNameMap){
-    /*
-    * TODO: This should map a node that has a backedge with the cycle structure that maps a node that has a backedge
-    * with a string that represents this cycle. See commit 03938222129af8538c1dc558793ff8877c441636
-    * And how it was implemented.
-    * The idea is that when we encouter this node when doing the graph traversal to get all paths, we can easily 
-    * identify the cycle that needs to be added to the path.
-    * We want to make this before in one go so we can reuse our findings.
-    */
+    for (ICFGNode::const_iterator it = iNode->OutEdgeBegin(), eit =
+                iNode->OutEdgeEnd(); it != eit; ++it)
+    {
+        ICFGEdge* edge = *it;
+        ICFGNode* succNode = edge->getDstNode();
+        if (visitedInCurrentPath.find(succNode) != visitedInCurrentPath.end()){
+            string s = getCycle(iNode, succNode, predecessorMap);
+            cycleSourceNodeToPathNameMap.insert({succNode, s});
+        }
+        if (visited.find(succNode) == visited.end())
+        {
+            visited.insert(succNode);
+            visitedInCurrentPath.insert(succNode);
+            predecessorMap.insert({iNode, succNode});
+            getCyclesWithDFS(succNode, visited, visitedInCurrentPath, predecessorMap, cycleSourceNodeToPathNameMap);
+            visitedInCurrentPath.erase(succNode);
+        }
+    }
     return;
 }
 
-/*!
- * An example to query/collect all successor nodes from a ICFGNode (iNode) along control-flow graph (ICFG)
- */
 void traverseOnICFG(PTACallGraph* callgraph, ICFG* icfg, const SVFInstruction* svfinst)
 {
     ICFGNode* iNode = icfg->getICFGNode(svfinst);
     unordered_set<const ICFGNode*> visited;
+    unordered_set<const ICFGNode*> visited_for_cycles;
     unordered_map<const ICFGNode*, const ICFGNode*> predecessorMap;
     unordered_map<const ICFGNode*, string> cycleSourceNodeToPathNameMap;
     vector<string> path;
-    getCyclesWithDFS(iNode, cycleSourceNodeToPathNameMap);
-    bfs(false, iNode, visited, predecessorMap, path, cycleSourceNodeToPathNameMap);
+    getCyclesWithDFS(iNode, visited, visited_for_cycles, predecessorMap, cycleSourceNodeToPathNameMap);
+    visited.clear();
+    bfs(false, iNode, visited, path, cycleSourceNodeToPathNameMap);
 }
 
 int main(int argc, char ** argv) {
@@ -172,15 +185,13 @@ int main(int argc, char ** argv) {
     SVFIRBuilder builder(svfModule);
     SVFIR* svfir = builder.build();
 
-    /// This is necessary if we want to consider indirect function calls. It can be interesting to speak with a TA
-    /// To see if this is necessary. This can also plot the call graph which is more intuitive than the ICFG.
+    std::cout.setstate(std::ios::failbit);
     PTACallGraph* callgraph = AndersenWaveDiff::createAndersenWaveDiff(svfir)->getPTACallGraph();
     builder.updateCallGraph(callgraph);
     callgraph->dump("/home/project/graphs/call_graph_" + graphFileName);
 
     /// ICFG
     ICFG* icfg = svfir->getICFG();
-    // icfg->updateCallGraph(callgraph); // This is necessary when considering indirect function calls.
     icfg->dump("/home/project/graphs/icfg_" + graphFileName);
 
     const SVFFunction* mainFunc = svfModule->getSVFFunction("main");
@@ -189,8 +200,8 @@ int main(int argc, char ** argv) {
     // Example of getting a function name of the call node
     SVF::PTACallGraphNode* ptaCallNode = callgraph->getCallGraphNode(mainFunc);
     const SVF::SVFFunction* svfFunction = ptaCallNode->getFunction();
-    cout << svfFunction->getName() << endl;
 
+    std::cout.clear() ;
     traverseOnICFG(callgraph, icfg, mainInst);
     if(!reachedPrinted){
         cout << "Unreachable" << endl;

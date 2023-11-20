@@ -53,15 +53,13 @@ entry:
 }
 
 ; Function Attrs: noinline nounwind optnone uwtable
-define dso_local i32 @main() #0 !dbg !39 {
+define dso_local i32 @src() #0 !dbg !39 {
 entry:
-  %retval = alloca i32, align 4
   %num1 = alloca double, align 8
   %num2 = alloca double, align 8
   %sum = alloca double, align 8
   %difference = alloca double, align 8
   %i = alloca i32, align 4
-  store i32 0, i32* %retval, align 4
   call void @llvm.dbg.declare(metadata double* %num1, metadata !42, metadata !DIExpression()), !dbg !43
   call void @llvm.dbg.declare(metadata double* %num2, metadata !44, metadata !DIExpression()), !dbg !45
   call void @llvm.dbg.declare(metadata double* %sum, metadata !46, metadata !DIExpression()), !dbg !47
@@ -99,6 +97,15 @@ for.end:                                          ; preds = %for.cond
 
 declare dso_local i32 @__isoc99_scanf(i8* noundef, ...) #2
 
+; Function Attrs: noinline nounwind optnone uwtable
+define dso_local i32 @main() #0 !dbg !74 {
+entry:
+  %retval = alloca i32, align 4
+  store i32 0, i32* %retval, align 4
+  %call = call i32 @src(), !dbg !75
+  ret i32 0, !dbg !76
+}
+
 attributes #0 = { noinline nounwind optnone uwtable "frame-pointer"="all" "min-legal-vector-width"="0" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
 attributes #1 = { nofree nosync nounwind readnone speculatable willreturn }
 attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+cx8,+fxsr,+mmx,+sse,+sse2,+x87" "tune-cpu"="generic" }
@@ -108,7 +115,7 @@ attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !llvm.ident = !{!7}
 
 !0 = distinct !DICompileUnit(language: DW_LANG_C99, file: !1, producer: "clang version 14.0.0", isOptimized: false, runtimeVersion: 0, emissionKind: FullDebug, splitDebugInlining: false, nameTableKind: None)
-!1 = !DIFile(filename: "example3.c", directory: "/home/project/test_cases/custom", checksumkind: CSK_MD5, checksum: "c14b021a68e468994108577db61a1c54")
+!1 = !DIFile(filename: "example3.c", directory: "/home/project/test_cases/custom", checksumkind: CSK_MD5, checksum: "85bc31a2f95f067acd549ed9da80f3a3")
 !2 = !{i32 7, !"Dwarf Version", i32 5}
 !3 = !{i32 2, !"Debug Info Version", i32 3}
 !4 = !{i32 1, !"wchar_size", i32 4}
@@ -146,7 +153,7 @@ attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !36 = !DILocation(line: 14, column: 16, scope: !30)
 !37 = !DILocation(line: 14, column: 14, scope: !30)
 !38 = !DILocation(line: 14, column: 5, scope: !30)
-!39 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 17, type: !40, scopeLine: 17, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
+!39 = distinct !DISubprogram(name: "src", scope: !1, file: !1, line: 17, type: !40, scopeLine: 17, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
 !40 = !DISubroutineType(types: !41)
 !41 = !{!24}
 !42 = !DILocalVariable(name: "num1", scope: !39, file: !1, line: 19, type: !11)
@@ -181,3 +188,6 @@ attributes #2 = { "frame-pointer"="all" "no-trapping-math"="true" "stack-protect
 !71 = !{!"llvm.loop.mustprogress"}
 !72 = !DILocation(line: 27, column: 5, scope: !39)
 !73 = !DILocation(line: 28, column: 5, scope: !39)
+!74 = distinct !DISubprogram(name: "main", scope: !1, file: !1, line: 31, type: !40, scopeLine: 31, spFlags: DISPFlagDefinition, unit: !0, retainedNodes: !12)
+!75 = !DILocation(line: 32, column: 5, scope: !74)
+!76 = !DILocation(line: 33, column: 5, scope: !74)

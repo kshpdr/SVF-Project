@@ -56,26 +56,24 @@ void printPath(vector<string> & path){
     for(string s : path){
         cout << s;
     }
-    cout << "sink" << endl;
+    cout << endl;
 }
 
-void bfs(ICFGNode* iNode,
+void bfs(bool srcFound,
+ICFGNode* iNode,
 unordered_set<const ICFGNode*> & visited,
 unordered_map<const ICFGNode*, const ICFGNode*> & predecessorMap,
 vector<string> & path,
 unordered_map<const ICFGNode*, string> & cycleSourceNodeToPathNameMap){
-    bool funNameExists = false;
     if (FunEntryICFGNode::classof(iNode)) {
-        // cout << "It's a Call node" << endl;
         string funName = dyn_cast<const SVF::FunEntryICFGNode>(iNode)->getFun()->getName();
-        if(funName == "sink"){
+        if(srcFound && funName == "sink"){
+            path.pop_back();
             printPath(path);
+            path.push_back("-->");
             return;
-        }else{
-            path.push_back(funName + "-->");
-            funNameExists = true;
         }
-    } 
+    }
     for (ICFGNode::const_iterator it = iNode->OutEdgeBegin(), eit =
                 iNode->OutEdgeEnd(); it != eit; ++it)
     {
@@ -84,17 +82,30 @@ unordered_map<const ICFGNode*, string> & cycleSourceNodeToPathNameMap){
         if (visited.find(succNode) == visited.end())
         {
             visited.insert(succNode);
-            predecessorMap.insert({succNode, iNode});
-            if (cycleSourceNodeToPathNameMap.find(succNode) != cycleSourceNodeToPathNameMap.end()){
-                path.push_back(cycleSourceNodeToPathNameMap.at(succNode));
+            if (FunEntryICFGNode::classof(succNode)) {
+                string funName = dyn_cast<const SVF::FunEntryICFGNode>(succNode)->getFun()->getName();
+                if(funName == "src"){
+                    srcFound = true;
+                    visited.clear();
+                    visited.insert(succNode);
+                }
             }
-            bfs(succNode, visited, predecessorMap, path, cycleSourceNodeToPathNameMap);
-            visited.erase(succNode);
-            predecessorMap.erase(succNode);
-            if (funNameExists) {path.pop_back();}
-            if (cycleSourceNodeToPathNameMap.find(succNode) != cycleSourceNodeToPathNameMap.end()){path.pop_back();}
-        }else{
-            // getCycle(iNode)
+            if(srcFound){
+                path.push_back(std::to_string(succNode->getId()));
+                path.push_back("-->");
+            }
+            bfs(srcFound, succNode, visited, predecessorMap, path, cycleSourceNodeToPathNameMap);
+            if(visited.find(succNode) != visited.end()) {visited.erase(succNode);}
+            if(srcFound){
+                path.pop_back();
+                path.pop_back();
+            }
+            if (FunEntryICFGNode::classof(succNode)) {
+                string funName = dyn_cast<const SVF::FunEntryICFGNode>(succNode)->getFun()->getName();
+                if(funName == "src"){
+                    srcFound = false;
+                }
+            }
         }
     }
 }
@@ -142,7 +153,7 @@ void traverseOnICFG(PTACallGraph* callgraph, ICFG* icfg, const SVFInstruction* s
     unordered_map<const ICFGNode*, string> cycleSourceNodeToPathNameMap;
     vector<string> path;
     getCyclesWithDFS(iNode, cycleSourceNodeToPathNameMap);
-    bfs(iNode, visited, predecessorMap, path, cycleSourceNodeToPathNameMap);
+    bfs(false, iNode, visited, predecessorMap, path, cycleSourceNodeToPathNameMap);
 }
 
 int main(int argc, char ** argv) {
@@ -181,6 +192,9 @@ int main(int argc, char ** argv) {
     cout << svfFunction->getName() << endl;
 
     traverseOnICFG(callgraph, icfg, mainInst);
+    if(!reachedPrinted){
+        cout << "Unreachable" << endl;
+    }
 
     return 0;
 }

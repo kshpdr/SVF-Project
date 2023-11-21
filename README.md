@@ -21,8 +21,8 @@ To do:
 - [x] Ask TAs if we also want to include undirect function call in our analysis.
 - [x] Develop the BFS algorithm for path reachanbility that handles cycles.
 - [x] Develop an algorithm leveraging backtracking to find all paths from `src()` to `sink()`. Currently this does not handle cycles.
-- [ ] Fill the `getCyclesWithDFS()` method to get cycles for th all paths version.
-- [ ] Ask TAs which kind of nodes we want to consider for our graph traversal, and which Node Ids should be in the output.
-- [ ] Create more tests to make sure that the cycles logic works well.
-- [ ] Start writing the report.
-- [ ] Mute the verbose output so only the relevant things are shown.
+- [x] Fill the `getCyclesWithDFS()` method to get cycles for th all paths version.
+- [x] Ask TAs which kind of nodes we want to consider for our graph traversal, and which Node Ids should be in the output.
+- [x] Create more tests to make sure that the cycles logic works well.
+- [x] Mute the verbose output so only the relevant things are shown.
+- [ ] Finish writing the report.
